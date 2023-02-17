@@ -10,6 +10,11 @@
     <description>Jeepay计全支付系统 [代码生成工具]</description> <!-- 项目描述 -->
     <url>https://www.jeequan.com</url>
 
+    <parent>
+        <groupId>com.jeequan</groupId>
+        <artifactId>jeepay</artifactId>
+        <version>Final</version>
+    </parent>
     <!-- 配置属性声明, 支持自定义参数 -->
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> <!-- 项目构建输出编码 -->
@@ -56,10 +61,31 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <configuration>
+                    <container>
+                        <entrypoint>
+                            sh,-c,java $JVM_OPTS -cp $( cat /app/jib-classpath-file ) $( cat /app/jib-main-class-file ) $JAVA_ARGS
+                        </entrypoint>
+                    </container>
+                </configuration>
+            </plugin>
+
+            <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>8</source>
-                    <target>8</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
         </plugins>

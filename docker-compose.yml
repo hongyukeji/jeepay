@@ -8,25 +8,47 @@ version: '3'
 # 重新创建 docker-composer up --force-recreate
 # 重新编译并覆盖之前的 docker-composer up --build --force-recreate
 
-
 # 编译前端请先执行 git submodule updata --init --recursive
 # 或者 git clone https://gitee.com/jeequan/jeepay-ui.git
+
+# 首次安装需要执行该命令进行编译
+# Maven 依赖提前编译，修改 MQ 队列 (修改 jeepay-components-mq 依赖) 也需要重新运行此命令
+# docker build -t jeepay-deps:latest -f docs/Dockerfile .
+
+#  启动命令：docker-compose up
+#  删除：docker-compose rm
+#  启动并运行在后台：docker-compose up -d
+#  重新编译：docker-compose up --build
+#  重新创建：docker-compose up --force-recreate
+#  重新编译并覆盖之前的：docker-compose up --build --force-recreate
+
+# 运行命令
+# docker-compose up -d --build --force-recreate
 
 services:
   mysql:
     hostname: mysql
     container_name: jeepay-mysql
+    restart: always
     # amd64 平台
     #image: mysql/mysql-server:latest
-    image: mysql:8
+    image: mysql:8.0
     environment:
       LANG: C.UTF-8
-      MYSQL_ROOT_PASSWORD: "rootroot"
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: "mysqlRoot2018"
       MYSQL_DATABASE: "jeepaydb"
       MYSQL_USER: "jeepay"
-      MYSQL_PASSWORD: "jeepay"
+      MYSQL_PASSWORD: "jeepayRoot2018"
+    #command: --default-authentication-plugin=mysql_native_password
+    command:
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --explicit_defaults_for_timestamp=true
+      --lower_case_table_names=1
     ports:
-      - "3306:3306"
+      - "3308:3306"
     volumes:
       - mysql:/var/lib/mysql
       - ./docs/sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
@@ -39,7 +61,10 @@ services:
       dockerfile: Dockerfile
     hostname: activemq
     container_name: jeepay-activemq
+    restart: always
     image: jeepay-activemq:latest
+    environment:
+      - TZ=Asia/Shanghai
     ports: #- "1883:1883"
       #- "5672:5672"
       - "8161:8161"
@@ -108,7 +133,12 @@ services:
   redis:
     hostname: redis
     container_name: jeepay-redis
+    restart: always
     image: redis:latest
+    environment:
+      - TZ=Asia/Shanghai
+    command:
+      --requirepass "redisRoot2018"
     ports:
       - "6380:6379"
     networks:
@@ -124,8 +154,11 @@ services:
         PORT: 9216
         PLATFORM: payment
     image: jeepay-payment:latest
+    environment:
+      - TZ=Asia/Shanghai
     hostname: payment
     container_name: jeepay-payment
+    restart: always
     ports:
       - "9216:9216"
     depends_on:
@@ -148,8 +181,11 @@ services:
         PORT: 9217
         PLATFORM: manager
     image: jeepay-manager:latest
+    environment:
+      - TZ=Asia/Shanghai
     hostname: manager
     container_name: jeepay-manager
+    restart: always
     ports:
       - "9217:9217"
     depends_on:
@@ -172,8 +208,11 @@ services:
         PORT: 9218
         PLATFORM: merchant
     image: jeepay-merchant:latest
+    environment:
+      - TZ=Asia/Shanghai
     hostname: merchant
     container_name: jeepay-merchant
+    restart: always
     ports:
       - "9218:9218"
     depends_on:
@@ -197,6 +236,7 @@ services:
     image: jeepay-ui-payment:latest
     hostname: payment-ui
     container_name: jeepay-ui-payment
+    restart: always
     environment:
       - BACKEND_HOST=172.20.0.21:9216
     ports:
@@ -215,6 +255,7 @@ services:
     image: jeepay-ui-manager:latest
     hostname: manager-ui
     container_name: jeepay-ui-manager
+    restart: always
     environment:
       - BACKEND_HOST=172.20.0.22:9217
     ports:
@@ -233,6 +274,7 @@ services:
     image: jeepay-ui-merchant:latest
     hostname: merchant-ui
     container_name: jeepay-ui-merchant
+    restart: always
     environment:
       - BACKEND_HOST=172.20.0.23:9218
     ports:
